@@ -1,0 +1,1 @@
+rootProject.name = "com.pueblomo.nimbus-backend"
