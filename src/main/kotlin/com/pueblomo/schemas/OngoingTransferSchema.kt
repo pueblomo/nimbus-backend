@@ -11,7 +11,7 @@ object OngoingTransfers : UUIDTable() {
     val content = binary("content", 40000)
     val number = integer("number")
     val isLast = bool("is_last")
-
+    val connectionName = varchar("connection_name", 250)
 }
 
 class OngoingTransfer(id: EntityID<UUID>) : Entity<UUID>(id) {
@@ -21,4 +21,5 @@ class OngoingTransfer(id: EntityID<UUID>) : Entity<UUID>(id) {
     var content by OngoingTransfers.content
     var number by OngoingTransfers.number
     var isLast by OngoingTransfers.isLast
+    var connectionName by OngoingTransfers.connectionName
 }

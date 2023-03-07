@@ -4,6 +4,7 @@ val logback_version: String by project
 val postgres_version: String by project
 val h2_version: String by project
 val exposed_version: String by project
+val env_conf_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -42,4 +43,5 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
+    implementation("de.sharpmind.ktor:ktor-env-config:$env_conf_version")
 }
