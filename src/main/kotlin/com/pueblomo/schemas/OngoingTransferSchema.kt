@@ -8,7 +8,7 @@ import java.util.*
 
 object OngoingTransfers : UUIDTable() {
     val fileName = varchar("file_name", 250)
-    val content = binary("content", 40000)
+    val content = binary("content", 100000)
     val number = integer("number")
     val isLast = bool("is_last")
     val connectionName = varchar("connection_name", 250)

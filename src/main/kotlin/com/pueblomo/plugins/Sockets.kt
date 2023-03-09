@@ -57,12 +57,15 @@ fun Application.configureSockets() {
                         ConnectionState.AUTHORIZED -> connectionStateHandler.handleAuthorizedState(messageWrapper)
                         else -> {}
                     }
+                    thisConnection.session.flush()
                 }
             } catch (ex: Exception) {
                 logger.info("Catched: ", ex)
             } finally {
+                if (thisConnection.state != ConnectionState.INIT) {
+                    updateClientLastConnected(thisConnection.name)
+                }
                 logger.info { "Removing ${thisConnection.name}" }
-                updateClientLastConnected(thisConnection.name)
                 connections -= thisConnection
             }
         }
