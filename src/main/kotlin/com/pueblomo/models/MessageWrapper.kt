@@ -12,19 +12,14 @@ data class MessageWrapper(
 }
 
 @Serializable
-data class InitialMessage(
-    val clientName: String
-)
-
-@Serializable
 data class FileMessage(
     val type: MessageType,
-    val fileName: String,
+    val filePath: String,
     val data: String,
-    val number: Int,
     val isLast: Boolean
 ) {
     fun decodeData(): ByteArray = Base64.getDecoder().decode(data)
+    fun toBase64(): String = Base64.getEncoder().encodeToString(this.toString().encodeToByteArray())
 }
 
 enum class MessageType {

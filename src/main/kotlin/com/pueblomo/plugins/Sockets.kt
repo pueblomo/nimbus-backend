@@ -1,6 +1,9 @@
 package com.pueblomo.plugins
 
-import com.pueblomo.models.*
+import com.pueblomo.models.ConnectionState
+import com.pueblomo.models.MessageType
+import com.pueblomo.models.MessageWrapper
+import com.pueblomo.models.WebsocketConnection
 import com.pueblomo.schemas.Client
 import com.pueblomo.schemas.Clients
 import com.pueblomo.services.ConnectionStateHandler
@@ -8,7 +11,6 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.websocket.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
@@ -34,33 +36,40 @@ fun Application.configureSockets() {
             val thisConnection = WebsocketConnection(this)
             connections += thisConnection
 
-            val sendChunks = { fileMessage: FileMessage ->
-                connections.filter { it != thisConnection }.forEach {
-                    val messageWrapper = MessageWrapper(
-                        WrapperType.FILE,
-                        Base64.getEncoder().encodeToString(fileMessage.toString().encodeToByteArray())
-                    )
-                    launch {
-                        it.session.send(Frame.Binary(true, messageWrapper.toString().encodeToByteArray()))
-                    }
+            fun sendFileDelete(path: String) {
+                connections.filter { it.name != thisConnection.name }.forEach {
+                    launch { it.sendFileDelete(path) }
+                }
+            }
+
+            fun sendFileUpdate(path: String, type: MessageType) {
+                connections.filter { it.name != thisConnection.name }.forEach {
+                    launch { it.sendFileUpdate(path, type) }
                 }
             }
 
             val connectionStateHandler =
-                ConnectionStateHandler(thisConnection, sendChunks)
+                ConnectionStateHandler(
+                    thisConnection,
+                    sendFileDelete = { path -> sendFileDelete(path) },
+                    sendFileUpdate = { path, type -> sendFileUpdate(path, type) })
 
             try {
                 while (true) {
                     val messageWrapper = receiveDeserialized<MessageWrapper>()
                     when (thisConnection.state) {
-                        ConnectionState.INIT -> connectionStateHandler.handleInitState(messageWrapper)
+                        ConnectionState.INIT -> {
+                            connectionStateHandler.handleInitState(messageWrapper)
+                            // ToDo search new files
+                        }
+
                         ConnectionState.AUTHORIZED -> connectionStateHandler.handleAuthorizedState(messageWrapper)
                         else -> {}
                     }
                     thisConnection.session.flush()
                 }
             } catch (ex: Exception) {
-                logger.info("Catched: ", ex)
+                logger.warn("Catched: ", ex)
             } finally {
                 if (thisConnection.state != ConnectionState.INIT) {
                     updateClientLastConnected(thisConnection.name)

@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import java.util.*
 
 object Files : UUIDTable() {
-    val fileName = varchar("file_name", 250)
+    val filePath = varchar("file_path", 250)
     val lastUpdated = timestamp("last_updated")
     val action = enumerationByName<MessageType>("action", 20)
 }
@@ -17,7 +17,7 @@ object Files : UUIDTable() {
 class File(id: EntityID<UUID>) : Entity<UUID>(id) {
     companion object : EntityClass<UUID, File>(Files)
 
-    var fileName by Files.fileName
+    var filePath by Files.filePath
     var lastUpdated by Files.lastUpdated
     var action by Files.action
 }

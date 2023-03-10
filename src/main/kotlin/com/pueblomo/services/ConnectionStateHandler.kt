@@ -1,11 +1,13 @@
 package com.pueblomo.services
 
 import com.pueblomo.models.*
+import io.ktor.websocket.*
 import mu.KotlinLogging
 
 class ConnectionStateHandler(
     private val connection: WebsocketConnection,
-    private val sendChunks: (fileMessage: FileMessage) -> Unit
+    private val sendFileUpdate: (String, MessageType) -> Unit,
+    private val sendFileDelete: (String) -> Unit
 ) {
     private val messageHandler: MessageHandler =
         MessageHandler()
@@ -19,11 +21,13 @@ class ConnectionStateHandler(
                     connection.name = messageWrapper.decodeData()
                     connection.state = ConnectionState.AUTHORIZED
                 } else {
-                    connection.sendMessage("Not Authorized")
+                    connection.session.close(CloseReason(CloseReason.Codes.TRY_AGAIN_LATER, "Not Authorized"))
                 }
             }
 
-            else -> connection.sendMessage("Not Authorized")
+            else -> {
+                connection.session.close(CloseReason(CloseReason.Codes.TRY_AGAIN_LATER, "Not Authorized"))
+            }
         }
     }
 
@@ -32,10 +36,13 @@ class ConnectionStateHandler(
             WrapperType.FILE -> {
                 try {
                     messageHandler.handleWrapperTypeFile(
-                        messageWrapper.decodeData(), sendChunks, connection.name
+                        messageWrapper.decodeData(),
+                        sendFileDelete,
+                        sendFileUpdate
                     )
                 } catch (ex: Exception) {
-                    logger.error("Failed sending chunks to ${connection.name}", ex)
+                    logger.error("Failed file handling to ${connection.name}", ex)
+                    connection.sendMessage("Error on sending")
                 }
             }
 

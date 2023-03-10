@@ -2,7 +2,6 @@ package com.pueblomo.plugins
 
 import com.pueblomo.schemas.Clients
 import com.pueblomo.schemas.Files
-import com.pueblomo.schemas.OngoingTransfers
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -17,7 +16,6 @@ import java.sql.*
 fun Application.configureDatabases() {
     Database.connect({ connectToPostgres(embedded = true) })
     transaction {
-        SchemaUtils.create(OngoingTransfers)
         SchemaUtils.create(Clients)
         SchemaUtils.create(Files)
     }
